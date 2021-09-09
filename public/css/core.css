@@ -9,7 +9,7 @@
     text-decoration: none;
     padding: 0.75em;
     flex: 1;
-    border-bottom: .5px solid #eee;
+    /*border-bottom: .5px solid #eee;*/
     display: flex;
     flex-direction: row;
     font-weight: 100;
@@ -42,8 +42,8 @@
 }
 
 #list .row .right {
-    border: 1px solid #1890ff;
-    border-radius: 4px;
+    /*border: 1px solid #1890ff;*/
+    /*border-radius: 4px;*/
     color: #1890ff;
     padding: 4px 14px;
     align-self: center;
@@ -65,11 +65,11 @@
     color: #1890ff;
     border: 1px #1890ff solid;
     border-radius: 2px;
-    margin-left: 6px;
+    /*margin-left: 6px;*/
 }
 
 #list .row .icon-tag {
-    width: 14px;
+    width: 16px;
     height: auto;
     box-shadow: none;
     margin: 0 0 0 4px;
@@ -77,4 +77,23 @@
 
 #list .row .icon-tag.android {
     width: 17px;
+}
+
+.app-desc {
+    padding: 0.75em;
+    color: #666;
+    font-size: 1.2em;
+    flex: 1;
+    border-bottom: .5px solid #eee;
+}
+
+#list .row .icon-tag-large {
+    width: 30px;
+    height: auto;
+    /*box-shadow: none;*/
+    /*margin: 0 0 0 4px;*/
+}
+
+pre {
+    white-space: pre-wrap;
 }

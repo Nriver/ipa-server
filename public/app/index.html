@@ -115,7 +115,7 @@
             <span onclick="onClickDelete('${row.id}')" ${del?"":"hidden"} class="delete">${IPA.langString('Delete')}</span>
           </div>
           <div class="qrcode"></div>
-          <div onclick="${onInstallClick(row)}" class="install">${IPA.langString('Download and Install')}</div>
+          <div onclick="onInstallClick('${row.id}')" class="install">${IPA.langString('Download and Install')}</div>
         `
         document.querySelector('#list').innerHTML = row.history.map(row => IPA.createItem(row)).join('')
 

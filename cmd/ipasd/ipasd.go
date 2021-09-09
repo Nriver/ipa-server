@@ -37,7 +37,8 @@ func main() {
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
 	metadataPath := flag.String("meta-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
-	enabledDelete := flag.Bool("del", false, "delete app enabled")
+	//dirty hack
+	enabledDelete := flag.Bool("del", true, "delete app enabled")
 	remoteCfg := flag.String("remote", "", "remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET")
 	remoteURL := flag.String("remote-url", "", "remote storager public url, https://cdn.example.com")
 
@@ -106,6 +107,14 @@ func main() {
 		service.DecodeAddRequest,
 		service.EncodeJsonResponse,
 	)
+
+	// add edit function
+	editHandler := httptransport.NewServer(
+		service.LoggingMiddleware(logger, "/api/edit", *debug)(service.MakeEditEndpoint(srv)),
+		service.DecodeEditRequest,
+		service.EncodeJsonResponse,
+	)
+
 	deleteHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv, *enabledDelete)),
 		service.DecodeDeleteRequest,
@@ -120,6 +129,7 @@ func main() {
 	// parser API
 	serve.Handle("/api/list", listHandler)
 	serve.Handle("/api/info/", findHandler)
+	serve.Handle("/api/edit", editHandler)
 	serve.Handle("/api/upload", addHandler)
 	serve.Handle("/api/delete", deleteHandler)
 	serve.Handle("/plist/", plistHandler)

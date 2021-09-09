@@ -31,6 +31,12 @@ type delParam struct {
 	get       bool // get if delete enabled
 }
 
+type editParam struct {
+	publicURL string
+	id        string
+	comment   string
+}
+
 type addParam struct {
 	file *pkgMultipart.FormFile
 }
@@ -74,6 +80,18 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 		}
 
 		if err := srv.Add(buf, t); err != nil {
+			return nil, err
+		}
+		return map[string]string{"msg": "ok"}, nil
+	}
+}
+
+func MakeEditEndpoint(srv Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		p := request.(editParam)
+		err := srv.Edit(p.id, p.comment)
+
+		if err != nil {
 			return nil, err
 		}
 		return map[string]string{"msg": "ok"}, nil
@@ -143,6 +161,28 @@ func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	}
 
 	return addParam{file: f}, nil
+}
+
+func DecodeEditRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	// http://localhost/api/edit
+
+	if r.Method != http.MethodPost {
+		return nil, errors.New("404")
+	}
+
+	p := map[string]string{}
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, err
+	}
+
+	id := p["id"]
+	if err := tryMatchID(id); err != nil {
+		return nil, err
+	}
+
+	comment := p["comment"]
+
+	return editParam{id: id, comment: comment}, nil
 }
 
 func DecodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {

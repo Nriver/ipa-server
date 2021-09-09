@@ -39,6 +39,7 @@ type Item struct {
 	Build      string    `json:"build"`
 	Version    string    `json:"version"`
 	Identifier string    `json:"identifier"`
+	Comment    string    `json:"comment"`
 
 	// package download link
 	Pkg string `json:"pkg"`
@@ -65,6 +66,7 @@ type Service interface {
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
 	Add(r Reader, t AppInfoType) error
+	Edit(id string, comment string) error
 	Plist(id, publicURL string) ([]byte, error)
 }
 
@@ -168,6 +170,33 @@ func (s *service) Delete(id string) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *service) Edit(id string, comment string) error {
+
+	fmt.Println("Edit()")
+	fmt.Println(comment)
+
+	s.lock.Lock()
+	var app *AppInfo
+	for i, a := range s.list {
+		if a.ID == id {
+			app = a
+			s.list[i].Comment = comment
+			break
+		}
+	}
+	s.lock.Unlock()
+
+	if app == nil {
+		return ErrIdNotFound
+	}
+
+	if err := s.saveMetadata(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -331,6 +360,7 @@ func (s *service) itemInfo(row *AppInfo, publicURL string) *Item {
 		Version:    row.Version,
 		Channel:    row.Channel,
 		Type:       row.Type,
+		Comment:    row.Comment,
 
 		Pkg:     s.storagerPublicURL(publicURL, row.PackageStorageName()),
 		Plist:   plist,

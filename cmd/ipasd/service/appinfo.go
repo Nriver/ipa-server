@@ -22,6 +22,7 @@ type AppInfo struct {
 	Size       int64       `json:"size"`
 	NoneIcon   bool        `json:"noneIcon"`
 	Type       AppInfoType `json:"type"`
+	Comment    string      `json:"comment"`
 	// Metadata   plist.Plist `json:"metadata"` // metadata from Info.plist
 }
 

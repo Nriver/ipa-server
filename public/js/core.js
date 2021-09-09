@@ -49,9 +49,6 @@
         // localization string
         function langString(key) {
             const localStr = {
-                'Download': {
-                    'zh-cn': '下载'
-                },
                 'Upload Date: ': {
                     'zh-cn': '更新时间：'
                 },
@@ -109,28 +106,87 @@
             window.location.href = 'itms-services://?action=download-manifest&url=' + plist
         }
 
-        window.goToLink = function(event, link) {
-            event && event.stopPropagation()
+        window.goToLink = function(link) {
+            console.log("goToLink", link);
+            window.event && window.event.stopPropagation()
             window.location.href = link
         }
 
-        onInstallClick = function(row) {
+        onInstallClick = function(id) {
+            console.log("onInstallClick", id);
+            row = window.pkgs[id]
+
+            console.log("onInstallClick()", row);
             var needGoAppPage = !!(
                 row.type === 0 ?
-                (row.history || []).find(r => r.type === 1) :
-                (row.history || []).find(r => r.type === 0)
+                    (row.history || []).find(r => r.type === 1) :
+                    (row.history || []).find(r => r.type === 0)
             )
+            console.log("needGoAppPage", needGoAppPage);
             if (needGoAppPage) {
-                return `goToLink(null, '/app?id=${row.id}')`
+                return goToLink('/app?id='+row.id)
             }
-
+            console.log("row.type", row.type);
             if (row.type == 0) {
-                return `ipaInstall(event, '${row.plist}')`
+                return ipaInstall(row.plist)
             }
-            return `goToLink(event, '${row.pkg}')`
+            return goToLink(row.pkg)
         }
 
+        onEditClick = function(id){
+            edit_button = document.getElementById("edit_"+id);
+            submit_button = document.getElementById("submit_"+id);
+            comment = document.getElementById("comment_"+id);
+            comment_input = document.getElementById("comment_input_"+id);
+
+            edit_button.style.display="none";
+            submit_button.style.display="";
+            comment.style.display = "none";
+            comment_input.style.display = "";
+            comment_input.style.width = "100%";
+            comment_input.style.height = "auto";
+        }
+
+        onEditSubmitClick = function(id) {
+            console.log("onEditSubmitClick", id);
+            edit_button = document.getElementById("edit_"+id);
+            submit_button = document.getElementById("submit_"+id);
+            comment = document.getElementById("comment_"+id);
+            comment_input = document.getElementById("comment_input_"+id);
+
+            edit_button.style.display="";
+            submit_button.style.display="none";
+
+            comment_input.style.display = "none";
+            comment.style.display = "";
+
+            comment.innerText = comment_input.value;
+            comment_str = comment_input.value;
+
+            IPA.fetch(IPA.getApiUrl('/api/edit'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    comment: comment_str,
+                }),
+            }).then(json => {
+                if (json.err) {
+                    alert(json.err)
+                    return
+                }
+            }).catch(err => {
+                console.error(err)
+            })
+        }
+
+        // create a global list to store package data
+        window.pkgs = new Object();;
+
         function createItem(row) {
+            window.pkgs[row.id] = row;
             var icons = [row.type === 0 ? 'ios' : 'android'];
             (row.history || []).forEach(r => {
                 if (r.type === 0 && icons.indexOf('ios') === -1) {
@@ -142,22 +198,34 @@
             });
             icons.sort().reverse()
             return `
-      <a class='row' onclick="${`goToLink(event, '/app?id=${row.id}')`}">
-        <img data-normal="${row.webIcon}" alt="">
-        <div class="center">
+      <a class='row'>
+        <div style="cursor:pointer" onclick="goToLink('/app?id=${row.id}')">
+          <img data-normal="${row.webIcon}" alt="">
+        </div>
+        <div class="center" style="cursor:pointer" onclick="goToLink('/app?id=${row.id}')">
           <div class="name">
             ${row.name}
             ${icons.map(t => `<img class="icon-tag ${t}" src="/img/${t}.svg">`).join('')}
-            ${row.current ? `<span class="tag">${langString('Current')}</span>` : ''}
           </div>
+          <div>${row.current ? `<span class="tag">${langString('Current')}</span>` : ''}</div>
           <div class="version">
             <span>${row.version}(Build ${row.build})</span>
             <span>${row.channel && IPA.langString('Channel') + ': '+row.channel || ''}</span>
           </div>
           <div class="date">${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}</div>
         </div>
-        <div onclick="${onInstallClick(row)}" style="pointer-events:auto;" class="right">${IPA.langString('Download')}</div>
+
+        <div class="right" id="edit_${row.id}"><div onclick="onEditClick('${row.id}')"><img class="icon-tag-large" src="/img/edit.svg"></div></div>
+        <div class="right" id="submit_${row.id}" style="display:none" ><div onclick="onEditSubmitClick('${row.id}')"><img class="icon-tag-large" src="/img/check-circle.svg"></div></div>
+        <div class="right">
+            <div onclick="onInstallClick('${row.id}')" style="pointer-events:auto;"><img class="icon-tag-large" src="/img/arrow-alt-circle-down.svg"></div>
+        </div>
+        <br/>
       </a>
+      <div class="app-desc">
+          <pre class="center_child" id="comment_${row.id}" sytle="height:100%;cursor:pointer" onclick="goToLink('/app?id=${row.id}')">${row.comment}</pre>
+          <textarea class="center_child" id="comment_input_${row.id}" style="display:none" rows="10">${row.comment}</textarea>
+      </div>
     `
   }
 
