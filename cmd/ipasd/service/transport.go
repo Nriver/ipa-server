@@ -31,6 +31,11 @@ type delParam struct {
 	get       bool // get if delete enabled
 }
 
+type searchParam struct {
+	publicURL string
+	keyword   string
+}
+
 type editParam struct {
 	publicURL string
 	id        string
@@ -62,6 +67,13 @@ func MakeFindEndpoint(srv Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		p := request.(param)
 		return srv.Find(p.id, p.publicURL)
+	}
+}
+
+func MakeSearchEndpoint(srv Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		p := request.(searchParam)
+		return srv.Search(p.keyword, p.publicURL)
 	}
 }
 
@@ -146,6 +158,19 @@ func DecodeFindRequest(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, ErrIdInvalid
 	}
 	return param{publicURL: publicURL(r), id: id}, nil
+}
+
+func DecodeSearchRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	// http://localhost/api/search
+
+	p := map[string]string{}
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, err
+	}
+
+	keyword := p["keyword"]
+
+	return searchParam{keyword: keyword}, nil
 }
 
 func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {

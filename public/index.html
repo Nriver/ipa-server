@@ -19,31 +19,43 @@
       font-family: sans-serif;
     }
 
-    /* form  */
-    form {
-       display: flex;
-    }
+    /*!* form  *!*/
+    /*div {*/
+    /*   display: flex;*/
+    /*}*/
 
-    form .file {
+    div .file {
       display: none;
     }
 
-    form .add-btn {
-      flex: 1;
-      border-bottom: .5px solid #ccc;
-      padding: .75em;
-      font-size: 1.2em;
-      color: #1890ff;
-      text-align: center;
+    /*div .add-btn {*/
+    /*  flex: 1;*/
+    /*  border-bottom: .5px solid #ccc;*/
+    /*  padding: .75em;*/
+    /*  font-size: 1.2em;*/
+    /*  color: #1890ff;*/
+    /*  text-align: center;*/
+    /*}*/
+
+    .icon-top-bar{
+      width: 20px;
+      height: auto;
+      vertical-align:middle;
     }
   </style>
 </head>
 
 <body>
-  <form>
-    <input class="file" type="file" name="file" value="" accept=".ipa,.apk" />
-    <div class="add-btn">Add</div>
-  </form>
+
+  <div class="topnav">
+    <a class="active" href="/"><div class="home-btn"><img class="icon-top-bar" src="/img/home.svg"><span class="span-home">Home</span></div></a>
+    <a><div class="add-btn"><input class="file" type="file" name="file" value="" accept=".ipa,.apk" /><img class="icon-top-bar" src="/img/plus-square-o.svg"><span class="span-add">Add</span></div></a>
+    <div class="search-container">
+      <input class="search-keyword" type="text" placeholder="Search.." id="keyword" name="keyword">
+      <button onclick="search_keyword()"><div class="search-btn"><img class="icon-top-bar" src="/img/search.svg"><span class="span-search">Search</span></div></button>
+    </div>
+  </div>
+
   <div id="list"></div>
   <script type="text/javascript">
 
@@ -107,7 +119,33 @@
     }
 
     window.addEventListener('load', loadList)
-    document.querySelector('.add-btn').innerHTML = IPA.langString('Add')
+    document.querySelector('.span-home').innerHTML = IPA.langString('Home');
+    document.querySelector('.span-add').innerHTML = IPA.langString('Add');
+    document.querySelector('.span-search').innerHTML = IPA.langString('Search');
+    document.querySelector('.search-keyword').placeholder = IPA.langString('Keyword') + "...";
+
+    function search_keyword(){
+      console.log("search_keyword()");
+      let keyword = document.getElementById("keyword");
+      let keyword_str = keyword.value;
+      console.log(keyword_str);
+      IPA.fetch(IPA.getApiUrl('/api/search'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          keyword: keyword_str,
+        }),
+      }).then(list => {
+        document.querySelector('#list').innerHTML = list.map(row => IPA.createItem(row)).join('')
+
+        // start lazy load
+        instance.update().check().handlers(true)
+      })
+
+
+    }
 
   </script>
 </body>

@@ -72,6 +72,11 @@
   </style>
 </head>
 <body>
+
+  <div class="topnav">
+    <a class="active" href="/"><div class="home-btn"><img class="icon-top-bar" src="/img/home.svg"><span class="span-home">Home</span></div></a>
+  </div>
+
   <div id="info"></div>
   <div id="list"></div>
   <script type="text/javascript">
@@ -159,6 +164,9 @@
       })
     }
     window.addEventListener('load', onWindowsLoad)
+
+    document.querySelector('.span-home').innerHTML = IPA.langString('Home')
+
   </script>
 </body>
 </html>

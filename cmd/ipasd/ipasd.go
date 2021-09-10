@@ -102,6 +102,11 @@ func main() {
 		service.DecodeFindRequest,
 		service.EncodeJsonResponse,
 	)
+	searchHandler := httptransport.NewServer(
+		service.LoggingMiddleware(logger, "/api/search", *debug)(service.MakeSearchEndpoint(srv)),
+		service.DecodeSearchRequest,
+		service.EncodeJsonResponse,
+	)
 	addHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/upload", *debug)(service.MakeAddEndpoint(srv)),
 		service.DecodeAddRequest,
@@ -129,6 +134,7 @@ func main() {
 	// parser API
 	serve.Handle("/api/list", listHandler)
 	serve.Handle("/api/info/", findHandler)
+	serve.Handle("/api/search", searchHandler)
 	serve.Handle("/api/edit", editHandler)
 	serve.Handle("/api/upload", addHandler)
 	serve.Handle("/api/delete", deleteHandler)

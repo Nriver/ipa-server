@@ -82,6 +82,15 @@
                 'Delete Success!': {
                     'zh-cn': '删除成功！'
                 },
+                'Home': {
+                    'zh-cn': '首页'
+                },
+                'Search': {
+                    'zh-cn': '搜索'
+                },
+                'Keyword': {
+                    'zh-cn': '关键字'
+                },
             }
             const lang = (localStr[key] || key)[language().toLowerCase()]
             return lang ? lang : key

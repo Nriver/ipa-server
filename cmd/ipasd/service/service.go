@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"path/filepath"
 	"sort"
+	"strings"
+	_ "strings"
 	"sync"
 	"time"
 
@@ -63,6 +65,7 @@ func (i *Item) String() string {
 type Service interface {
 	List(publicURL string) ([]*Item, error)
 	Find(id string, publicURL string) (*Item, error)
+	Search(keyword string, publicURL string) ([]*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
 	Add(r Reader, t AppInfoType) error
@@ -130,6 +133,42 @@ func (s *service) Find(id string, publicURL string) (*Item, error) {
 	item := s.itemInfo(app, publicURL)
 	item.History = s.history(app, publicURL)
 	return item, nil
+}
+
+func ContainsI(str string, subStr string) bool {
+	return strings.Contains(
+		strings.ToLower(str),
+		strings.ToLower(subStr),
+	)
+}
+
+func (s *service) Search(keyword string, publicURL string) ([]*Item, error) {
+	fmt.Println("Search()")
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	list := []*Item{}
+	for _, row := range s.list {
+		has := false
+		for _, i := range list {
+			if i.Identifier == row.Identifier {
+				has = true
+				break
+			}
+		}
+		if has {
+			continue
+		}
+
+		item := s.itemInfo(row, publicURL)
+		item.History = s.history(row, publicURL)
+		// keyword filter
+		if ContainsI(item.Name, keyword) || ContainsI(item.Comment, keyword) {
+			list = append(list, item)
+			continue
+		}
+
+	}
+	return list, nil
 }
 
 func (s *service) History(id string, publicURL string) ([]*Item, error) {
