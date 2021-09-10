@@ -19,29 +19,23 @@
       font-family: sans-serif;
     }
 
-    /*!* form  *!*/
-    /*div {*/
-    /*   display: flex;*/
-    /*}*/
-
     div .file {
       display: none;
     }
-
-    /*div .add-btn {*/
-    /*  flex: 1;*/
-    /*  border-bottom: .5px solid #ccc;*/
-    /*  padding: .75em;*/
-    /*  font-size: 1.2em;*/
-    /*  color: #1890ff;*/
-    /*  text-align: center;*/
-    /*}*/
 
     .icon-top-bar{
       width: 20px;
       height: auto;
       vertical-align:middle;
     }
+
+    .load-more{
+      /*height: 3em;*/
+      line-height: 3em;
+      text-align: center;
+      cursor: pointer;
+    }
+
   </style>
 </head>
 
@@ -57,14 +51,23 @@
   </div>
 
   <div id="list"></div>
+  <div class="load-more">
+    <div class="load-more-text" onclick="load_more()">load more</div>
+  </div>
   <script type="text/javascript">
 
+    page = 0
+    size = 10
+
     function updateAddProgress(progress) {
-      const add = document.querySelector(".add-btn")
+      const add = document.querySelector(".span-add")
       if (progress === 0) {
         add.innerHTML = IPA.langString('Add')
       } else if (progress === 1) {
         add.innerHTML = IPA.langString('Upload Done!')
+        //reload list
+        page = 0
+        loadList()
         setTimeout(() => {
           add.innerHTML = IPA.langString('Add')
         }, 2000)
@@ -110,19 +113,41 @@
     })
 
     function loadList() {
-      IPA.fetch(IPA.getApiUrl('/api/list')).then(list => {
-        document.querySelector('#list').innerHTML = list.map(row => IPA.createItem(row)).join('')
+      IPA.fetch(IPA.getApiUrl('/api/list'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          page: page,
+          size: size
+        }),
+      }).then(list => {
+        if (page==0){
+          document.querySelector('#list').innerHTML = list.map(row => IPA.createItem(row)).join('')
+        } else {
+          document.querySelector('#list').innerHTML += list.map(row => IPA.createItem(row)).join('')
+        }
+
+        if (list.length == 0) {
+          console.log("no more");
+          document.querySelector('.load-more').innerHTML = IPA.langString('No more');
+        } else {
+          // only add page count when data is not empty
+          page = page + 1;
+        }
 
         // start lazy load
         instance.update().check().handlers(true)
       })
     }
 
-    window.addEventListener('load', loadList)
+    window.addEventListener('load', function(){loadList()});
     document.querySelector('.span-home').innerHTML = IPA.langString('Home');
     document.querySelector('.span-add').innerHTML = IPA.langString('Add');
     document.querySelector('.span-search').innerHTML = IPA.langString('Search');
     document.querySelector('.search-keyword').placeholder = IPA.langString('Keyword') + "...";
+    document.querySelector('.load-more-text').innerHTML = IPA.langString('Load more');
 
     function search_keyword(){
       console.log("search_keyword()");
@@ -143,8 +168,10 @@
         // start lazy load
         instance.update().check().handlers(true)
       })
+    }
 
-
+    function load_more(){
+      loadList(page, size)
     }
 
   </script>

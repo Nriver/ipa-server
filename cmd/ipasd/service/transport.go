@@ -25,6 +25,12 @@ type param struct {
 	id        string
 }
 
+type listParam struct {
+	publicURL string
+	page      int
+	size      int
+}
+
 type delParam struct {
 	publicURL string
 	id        string
@@ -58,8 +64,8 @@ var (
 
 func MakeListEndpoint(srv Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		p := request.(param)
-		return srv.List(p.publicURL)
+		p := request.(listParam)
+		return srv.List(p.publicURL, p.page, p.size)
 	}
 }
 
@@ -144,7 +150,20 @@ func MakePlistEndpoint(srv Service) endpoint.Endpoint {
 
 func DecodeListRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	// http://localhost/api/list
-	return param{publicURL: publicURL(r)}, nil
+
+	if r.Method != http.MethodPost {
+		return nil, errors.New("404")
+	}
+
+	p := map[string]int{}
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, err
+	}
+
+	page := p["page"]
+	size := p["size"]
+
+	return listParam{publicURL: publicURL(r), page: page, size: size}, nil
 }
 
 func DecodeFindRequest(_ context.Context, r *http.Request) (interface{}, error) {

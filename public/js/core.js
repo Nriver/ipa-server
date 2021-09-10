@@ -91,6 +91,12 @@
                 'Keyword': {
                     'zh-cn': '关键字'
                 },
+                'Load more': {
+                    'zh-cn': '点击加载更多'
+                },
+                'No more': {
+                    'zh-cn': '已经到底了'
+                },
             }
             const lang = (localStr[key] || key)[language().toLowerCase()]
             return lang ? lang : key

@@ -63,7 +63,7 @@ func (i *Item) String() string {
 }
 
 type Service interface {
-	List(publicURL string) ([]*Item, error)
+	List(publicURL string, page int, size int) ([]*Item, error)
 	Find(id string, publicURL string) (*Item, error)
 	Search(keyword string, publicURL string) ([]*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
@@ -100,10 +100,18 @@ func New(store storager.Storager, publicURL, metadataName string) Service {
 	return s
 }
 
-func (s *service) List(publicURL string) ([]*Item, error) {
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func (s *service) List(publicURL string, page int, size int) ([]*Item, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	list := []*Item{}
+
 	for _, row := range s.list {
 		has := false
 		for _, i := range list {
@@ -116,10 +124,23 @@ func (s *service) List(publicURL string) ([]*Item, error) {
 			continue
 		}
 		item := s.itemInfo(row, publicURL)
-		item.History = s.history(row, publicURL)
+		// 首页并没有用到个数据
+		//item.History = s.history(row, publicURL)
+
 		list = append(list, item)
+
+		if len(list) > (page+1)*size {
+			break
+		}
 	}
-	return list, nil
+	beginIndex := page * size
+	endIndex := min(len(list), (page+1)*size)
+	fmt.Println("slice", beginIndex, endIndex)
+	if beginIndex > len(list) {
+		return []*Item{}, nil
+	}
+
+	return list[beginIndex:endIndex], nil
 }
 
 func (s *service) Find(id string, publicURL string) (*Item, error) {
