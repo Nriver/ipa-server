@@ -148,6 +148,7 @@
         }
 
         onEditSubmitClick = function(id) {
+
             console.log("onEditSubmitClick", id);
             edit_button = document.getElementById("edit_"+id);
             submit_button = document.getElementById("submit_"+id);
@@ -159,6 +160,11 @@
 
             comment_input.style.display = "none";
             comment.style.display = "";
+
+            if (comment.innerText == comment_input.value){
+                console.log("no change, no request");
+                return
+            }
 
             comment.innerText = comment_input.value;
             comment_str = comment_input.value;
