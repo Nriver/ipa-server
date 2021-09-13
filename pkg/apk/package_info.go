@@ -2,19 +2,20 @@ package apk
 
 import (
 	"fmt"
-	"image"
-
 	"github.com/shogo82148/androidbinary/apk"
+	"image"
 )
 
 type APK struct {
 	manifest apk.Manifest
 	icon     image.Image
 	size     int64
+	appLabel string
 }
 
 func (a *APK) Name() string {
-	return a.manifest.App.Label.MustString()
+	return a.appLabel
+	//return a.manifest.App.Label.MustString()
 }
 
 func (a *APK) Version() string {
